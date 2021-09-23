@@ -3,13 +3,18 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.Linq;
 
 namespace geo
 {
-  public record Location(string name, double[] position)
+  public record Location
   {
-    public override string ToString() => $"{name} @ {position[0]}, {position[1]}";
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("position")]
+    public double[] Position { get; set; }
+    public override string ToString() => $"{Name} @ {Position[0]}, {Position[1]}";
   }
   public class Program
   {
@@ -18,11 +23,11 @@ namespace geo
       var client = new HttpClient();
       return await client.GetFromJsonAsync<List<Location>>("https://raw.githubusercontent.com/chyld/datasets/main/markers.json");
     }
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-      var locations = GetJsonData().GetAwaiter().GetResult();
+      var locations = await GetJsonData();
 
-      // input from user
+      // simulate input from user
       var name = "Grocery Store";
       var lat = 525.1212;
       var lng = 553.1535;
@@ -30,8 +35,8 @@ namespace geo
       locations.Where(loc =>
         loc switch
         {
-          Location l when l.name == name && l.position[0] == lat && l.position[1] == lng => true,
-          Location l when l.name == name => true,
+          Location l when l.Name == name && l.Position[0] == lat && l.Position[1] == lng => true,
+          Location l when l.Name == name => true,
           _ => false
         }
       ).ToList().ForEach(loc => Console.WriteLine(loc));
